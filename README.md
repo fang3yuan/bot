@@ -1,160 +1,120 @@
-from instagrapi import Client
-import time
-from datetime import datetime, timedelta
+import requests
+import telebot
+import uuid
+from uuid import uuid4
+from user_agent import generate_user_agent
 
-# بيانات تسجيل الدخول إلى Instagram
-INSTAGRAM_USERNAME = "au5ae"
-INSTAGRAM_PASSWORD = "Qazwsx@12"
 
-# تسجيل الدخول إلى حساب Instagram
-def login_to_instagram(username, password):
-    cl = Client()
-    try:
-        cl.login(username, password)
-        print("تم تسجيل الدخول إلى Instagram بنجاح!")
-        return cl
-    except Exception as e:
-        print(f"فشل تسجيل الدخول: {e}")
-        return None
+def rest1(user_id,message):
 
-# بيانات اللاعبين
-players_data = {}
-admin_usernames = ["au5ae"]  # ضع أسماء الإدمن هنا
-salary_cooldown = timedelta(minutes=10)  # مدة الانتظار بين الرواتب
+	headers = {
+	    'authority': 'www.instagram.com',
+	    'accept': '*/*',
+	    'accept-language': 'ar-IQ,ar;q=0.9,en-CA;q=0.8,en;q=0.7,en-US;q=0.6',
+	    'content-type': 'application/x-www-form-urlencoded',
+	    'origin': 'https://www.instagram.com',
+	    'referer': 'https://www.instagram.com/accounts/password/reset/',
+	    'sec-ch-prefers-color-scheme': 'dark',
+	    'sec-ch-ua': '"Not A(Brand";v="8", "Chromium";v="132"',
+	    'sec-ch-ua-full-version-list': '"Not A(Brand";v="8.0.0.0", "Chromium";v="132.0.6961.0"',
+	    'sec-ch-ua-mobile': '?0',
+	    'sec-ch-ua-model': '""',
+	    'sec-ch-ua-platform': '"Linux"',
+	    'sec-ch-ua-platform-version': '""',
+	    'sec-fetch-dest': 'empty',
+	    'sec-fetch-mode': 'cors',
+	    'sec-fetch-site': 'same-origin',
+	    'user-agent': generate_user_agent(),
+	    'x-asbd-id': '129477',
+	    'x-csrftoken': 'MoKKhcy0MtQHyxInGtndUr',
+	    'x-ig-app-id': '936619743392459',
+	    'x-ig-www-claim': '0',
+	    'x-instagram-ajax': '1019919946',
+	    'x-mid': '1ujdauo3vgzs6u1r2s91ofgohk1h2rgm2kmhpc2132ncy3gny20f',
+	    'x-requested-with': 'XMLHttpRequest',
+	    'x-web-device-id': 'ECF42637-890D-492D-8B40-4CFA749DB5F5',
+	    'x-web-session-id': '7ncrkr:ntw37b:pp1uq6',
+	}
+	
+	data = {
+	    'email_or_username': user_id,
+	}
+	
+	try:
+		res = requests.post(
+		    'https://www.instagram.com/api/v1/web/accounts/account_recovery_send_ajax/',
+		    headers=headers,
+		    data=data,
+		).json()
+		
+		if 'title' in res.text:
+			we = res['contact_point']
+			ms = f'''📩 تم إرسال رابط إعادة تعيين كلمة المرور إلى حسابك على إنستجرام!
+✉️ البريد المرتبط: 
+[{we}]
+			'''
+			bot.reply_to(message,ms)
+		else:
+			gh = '''⚠️ البريد الإلكتروني أو المستخدم غير موجود!
+🛠️ يرجى التحقق من البيانات المدخلة
+			'''
+			bot.reply_to(message,gh)
+	except:
+		mn = '''❌ هناك خطأ في الاتصال أو الإنترنت!
+🌐 تحقق من الاتصال وحاول مرة أخرى
+		'''
+		bot.reply_to(message,mn)
 
-# مستويات الوظائف
-job_levels = {
-    1: {"name": "متدرب", "salary": 100},
-    2: {"name": "موظف", "salary": 200},
-    3: {"name": "مدير", "salary": 400},
-    4: {"name": "رئيس قسم", "salary": 800},
-    5: {"name": "مدير تنفيذي", "salary": 1600},
-}
+def rest(user_id,message):
+	url = "https://i.instagram.com/api/v1/accounts/send_password_reset/"
+	
+	payload = {
+	'ig_sig_key_version': "4",
+	'user_email': user_id,
+	'device_id': str(uuid.uuid4),
+	}
+	
+	headers = {
+	  'User-Agent': "Instagram 113.0.0.39.122 Android (30/11; 320dpi; 720x1339; realme; RMX3261; RMX3261; S19610AA1; en_CA)",
+	  'Connection': "Keep-Alive",
+	  'Accept-Encoding': "gzip",
+	  'Cookie2': "$Version=1",
+	  'Accept-Language': "en-CA, en-US",
+	  'X-IG-Connection-Type': "WIFI",
+	  'X-IG-Capabilities': "AQ==",
+	  'Cookie': "mid=Z4pqeQABAAHARa5XXmMPD5DG3OUA; csrftoken=Fz0IDmyOhyfPHAinkGtwy5RjqpwCfDcK"
+	}
+	try:
+		res = requests.post(url, data=payload, headers=headers).json()
+		
+		if 'obfuscated_email' in res:
+			se = res['obfuscated_email']
+			ms = f'''📩 تم إرسال رابط إعادة تعيين كلمة المرور إلى حسابك على إنستجرام!
+✉️ البريد المرتبط: 
+[{se}]
+			'''
+			bot.reply_to(message,ms)
+		elif 'rate_limit_error' in res:
+			md = '''انتظر 20 دقيقة ⏳ ثم حاول مجددًا.
+🕒 الصبر مفتاح الفرج!
+'''
+			bot.reply_to(message,md)
+		else:
+			rest1(user_id,message)
+	except:
+		rest1(user_id,message)
 
-# قائمة الأوامر
-commands_list = """
-الأوامر المتاحة:
-1. إنشاء - لإنشاء حساب بنكي.
-2. رصيد - لمعرفة رصيدك الحالي.
-3. راتب - للمطالبة براتبك.
-4. ترقيات - لمعرفة مستوى وظيفتك الحالي.
-5. منح [@username] [المبلغ] - (للإدمن فقط) لمنح مبلغ لأي لاعب.
-"""
+TOKEN = "7278031174:AAHqJjLVrBGNFMmMnZvamKAQg8mWZNtabf0"  #توكن هنا 
+bot = telebot.TeleBot(TOKEN)
 
-# إنشاء حساب بنكي
-def create_account(username):
-    if username in players_data:
-        return "لديك حساب بنكي بالفعل!"
-    players_data[username] = {
-        "balance": 0,
-        "last_salary_time": datetime.min,
-        "job_level": 1,
-        "salary_claims": 0,
-    }
-    return f"تم إنشاء حسابك بنجاح! وظيفتك الحالية: {job_levels[1]['name']}"
 
-# المطالبة بالراتب
-def claim_salary(username):
-    player = players_data.get(username)
-    if not player:
-        return "يجب عليك إنشاء حساب بنكي أولاً!"
-    
-    now = datetime.now()
-    if now - player["last_salary_time"] < salary_cooldown:
-        remaining_time = salary_cooldown - (now - player["last_salary_time"])
-        minutes, seconds = divmod(remaining_time.seconds, 60)
-        return f"يمكنك المطالبة براتبك بعد {minutes} دقيقة و {seconds} ثانية."
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "📬 أدخل البريد الإلكتروني أو اسم المستخدم لحسابك الآن!")
 
-    # إضافة الراتب إلى الرصيد
-    job_level = player["job_level"]
-    salary = job_levels[job_level]["salary"]
-    player["balance"] += salary
-    player["last_salary_time"] = now
-    player["salary_claims"] += 1
+@bot.message_handler(func=lambda message: True)
+def check_id(message):
+    user_id = message.text.strip()
+    rest(user_id,message)
 
-    # الترقية إذا طالب بالراتب 10 مرات
-    if player["salary_claims"] >= 10:
-        if job_level < len(job_levels):
-            player["job_level"] += 1
-            player["salary_claims"] = 0
-            new_job = job_levels[player["job_level"]]["name"]
-            return f"تمت ترقيتك إلى وظيفة: {new_job}! راتبك الجديد هو {job_levels[player['job_level']]['salary']}."
-
-    return f"تم إضافة {salary} إلى حسابك. وظيفتك الحالية: {job_levels[job_level]['name']}."
-
-# منح الأموال من قبل الإدمن
-def grant_money(admin_username, target_username, amount):
-    if admin_username not in admin_usernames:
-        return "هذا الأمر مخصص للإدمن فقط!"
-    
-    if target_username not in players_data:
-        return "اللاعب المستهدف ليس لديه حساب بنكي!"
-    
-    players_data[target_username]["balance"] += amount
-    return f"تم منح {amount} إلى {target_username} من قبل {admin_username}."
-
-# عرض الرصيد
-def check_balance(username):
-    player = players_data.get(username)
-    if not player:
-        return "يجب عليك إنشاء حساب بنكي أولاً!"
-    return f"رصيدك الحالي هو: {player['balance']}."
-
-# عرض الترقية
-def show_job_level(username):
-    player = players_data.get(username)
-    if not player:
-        return "يجب عليك إنشاء حساب بنكي أولاً!"
-    job_level = player["job_level"]
-    return f"وظيفتك الحالية: {job_levels[job_level]['name']}، راتبك: {job_levels[job_level]['salary']}."
-
-# الرد على الرسائل
-def handle_message(username, message):
-    args = message.split()
-    command = args[0].lower()
-    
-    if command == "إنشاء":
-        return create_account(username)
-    elif command == "راتب":
-        return claim_salary(username)
-    elif command == "رصيد":
-        return check_balance(username)
-    elif command == "ترقيات":
-        return show_job_level(username)
-    elif command == "منح":
-        if len(args) < 3:
-            return "صيغة الأمر غير صحيحة! استخدم: منح [@username] [المبلغ]"
-        target_username = args[1].lstrip("@")
-        try:
-            amount = int(args[2])
-            return grant_money(username, target_username, amount)
-        except ValueError:
-            return "المبلغ يجب أن يكون رقمًا صحيحًا!"
-    else:
-        return f"الأمر غير معروف! إليك قائمة بالأوامر:\n{commands_list}"
-
-# تشغيل النظام
-def main():
-    # تسجيل الدخول إلى Instagram
-    cl = login_to_instagram(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD)
-    if not cl:
-        return
-
-    print("النظام يعمل... انتظر الرسائل!")
-
-    while True:
-        # جلب الرسائل الواردة
-        messages = cl.direct_threads()
-        for thread in messages:
-            for message in thread.messages:
-                sender = message.user.username
-                text = message.text
-                if sender and text:
-                    print(f"رسالة من {sender}: {text}")
-                    response = handle_message(sender, text)
-                    cl.direct_send(response, thread.id)
-        
-        time.sleep(10)
-
-if __name__ == "__main__":
-    main()
+bot.polling()
