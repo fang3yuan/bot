@@ -4,5 +4,11 @@
         "device_name": "localhost",
         "os_type": "Linux",
         "user": "obaida"
+    },
+    {
+        "device_id": "11dc915b075baa5b5ff7cfb64282c3c06212725f8245c42e8421b6614ba5c9a4",
+        "device_name": "EC2AMAZ-KCS134M",
+        "os_type": "Windows",
+        "user": "1234"
     }
 ]
